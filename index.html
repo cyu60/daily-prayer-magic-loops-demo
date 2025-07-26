@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Prayer Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <style id="app-style">
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #1a3a5f;
+      color: white;
+      min-height: 100vh;
+    }
+    
+    .wave-pattern {
+      position: absolute;
+      width: 100%;
+      height: 50px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23a7c4bc' fill-opacity='0.3' d='M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,208C1248,171,1344,117,1392,90.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+      background-size: cover;
+      background-repeat: no-repeat;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .prayer-card {
+      background-color: rgba(167, 196, 188, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(167, 196, 188, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .prayer-text {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      line-height: 1.8;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .leaf-decoration {
+      position: absolute;
+      font-size: 4rem;
+      opacity: 0.1;
+      color: #a7c4bc;
+    }
+    
+    .leaf-1 {
+      top: -15px;
+      right: -15px;
+      transform: rotate(45deg);
+    }
+    
+    .leaf-2 {
+      bottom: -15px;
+      left: -15px;
+      transform: rotate(-135deg);
+    }
+    
+    .btn-generate {
+      background-color: #5d9c59;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-generate:hover {
+      background-color: #4a7d48;
+      transform: translateY(-2px);
+    }
+    
+    .history-item {
+      border-bottom: 1px solid rgba(167, 196, 188, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .history-item:hover {
+      background-color: rgba(167, 196, 188, 0.1);
+    }
+    
+    .history-prayer {
+      font-family: 'Lora', serif;
+      font-style: italic;
+    }
+    
+    .history-concern {
+      opacity: 0.8;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    /* Custom scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(167, 196, 188, 0.1);
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(167, 196, 188, 0.3);
+      border-radius: 10px;
+    }
+    
+    @media (min-width: 768px) {
+      .main-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+    }
+    
+    @media (max-width: 767px) {
+      .main-container {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .history-section {
+        margin-top: 2rem;
+      }
+    }
+    
+    .loading-spinner {
+      display: none;
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+  <div class="max-w-6xl mx-auto">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl font-semibold mb-2">Daily Prayer Generator</h1>
+      <p class="text-lg text-gray-200">Transform your worries into calm, focused prayers</p>
+    </header>
+    
+    <div class="main-container">
+      <div class="input-section">
+        <div class="mb-5">
+          <label for="worries" class="block text-lg mb-2 font-medium">Your Worries or Concerns for Today</label>
+          <textarea id="worries" rows="5" class="w-full p-4 rounded-lg bg-white/10 border border-gray-200/20 focus:outline-none focus:ring-2 focus:ring-green-400/50 text-white" placeholder="Type your worries here..."></textarea>
+        </div>
+        
+        <button id="generateBtn" class="btn-generate w-full py-3 px-6 rounded-lg font-semibold flex items-center justify-center text-white mb-6">
+          <span>Generate Prayer</span>
+          <span class="loading-spinner ml-3">
+            <i class="fas fa-circle-notch fa-spin"></i>
+          </span>
+        </button>
+        
+        <div id="prayerResult" class="prayer-card p-6 md:p-8 mt-2 mb-6 hidden">
+          <i class="fas fa-leaf leaf-decoration leaf-1"></i>
+          <i class="fas fa-leaf leaf-decoration leaf-2"></i>
+          <div class="wave-pattern bottom-0"></div>
+          
+          <p class="prayer-text text-xl md:text-2xl text-center mb-6"></p>
+          
+          <div class="text-center">
+            <a href="javascript:void(0)" id="startOverBtn" class="text-green-200 hover:text-white inline-flex items-center">
+              <i class="fas fa-redo-alt mr-2"></i> Start Over
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="history-section">
+        <div class="bg-white/5 rounded-lg border border-gray-200/20 p-4">
+          <h2 class="text-xl font-semibold mb-4">Your Prayer History</h2>
+          
+          <div id="historyList" class="custom-scrollbar max-h-96 overflow-y-auto">
+            <!-- Prayer history will be populated here -->
+            <div class="flex items-center justify-center h-32 text-gray-300">
+              <p>Your prayer history will appear here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script id="app-script">
+    document.addEventListener('DOMContentLoaded', function() {
+      const generateBtn = document.getElementById('generateBtn');
+      const startOverBtn = document.getElementById('startOverBtn');
+      const worriesInput = document.getElementById('worries');
+      const prayerResult = document.getElementById('prayerResult');
+      const prayerText = prayerResult.querySelector('.prayer-text');
+      const historyList = document.getElementById('historyList');
+      const loadingSpinner = document.querySelector('.loading-spinner');
+      
+      // Load history from localStorage
+      loadHistory();
+      
+      // Generate prayer button click handler
+      generateBtn.addEventListener('click', async function() {
+        const worries = worriesInput.value.trim();
+        
+        if (!worries) {
+          alert('Please share your worries or concerns before generating a prayer.');
+          return;
+        }
+        
+        // Show loading state
+        loadingSpinner.style.display = 'inline-block';
+        generateBtn.disabled = true;
+        
+        // Actual Loop call to CalmingPrayer
+        try {
+          const response = await fetch(
+            'https://magicloops.dev/api/loop/a945316e-fdb5-4a7f-a45d-a5796bfd6655/run',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ worryText: worries }),
+            }
+          );
+          const json = await response.json();
+          const generatedPrayer = json.prayerText;
+
+          // Display the generated prayer
+          prayerText.textContent = generatedPrayer;
+          prayerResult.classList.remove('hidden');
+
+          // Save to history
+          saveToHistory(worries, generatedPrayer);
+        } catch (err) {
+          console.error(err);
+          alert('Sorry, something went wrong. Please try again.');
+        } finally {
+          // Hide loading state
+          loadingSpinner.style.display = 'none';
+          generateBtn.disabled = false;
+        }
+      });
+      
+      // Start over button click handler
+      startOverBtn.addEventListener('click', function() {
+        worriesInput.value = '';
+        prayerResult.classList.add('hidden');
+        worriesInput.focus();
+      });
+      
+      // Function to save prayer to history
+      function saveToHistory(worries, prayer) {
+        const history = JSON.parse(localStorage.getItem('prayerHistory') || '[]');
+        const entry = {
+          id: Date.now(),
+          date: new Date().toISOString(),
+          worries,
+          prayer
+        };
+        
+        history.unshift(entry);
+        localStorage.setItem('prayerHistory', JSON.stringify(history.slice(0, 50)));
+        
+        loadHistory();
+      }
+      
+      // Function to load history from localStorage
+      function loadHistory() {
+        const history = JSON.parse(localStorage.getItem('prayerHistory') || '[]');
+        
+        if (history.length === 0) {
+          historyList.innerHTML = `
+            <div class="flex items-center justify-center h-32 text-gray-300">
+              <p>Your prayer history will appear here</p>
+            </div>
+          `;
+          return;
+        }
+        
+        historyList.innerHTML = history.map(entry => {
+          const date = new Date(entry.date);
+          const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+          });
+          
+          return `
+            <div class="history-item p-4">
+              <div class="flex justify-between items-start mb-2">
+                <p class="font-semibold">${formattedDate}</p>
+              </div>
+              <p class="history-concern text-sm mb-2">${entry.worries}</p>
+              <p class="history-prayer text-green-200">"${entry.prayer}"</p>
+            </div>
+          `;
+        }).join('');
+      }
+    });
+  </script>
+</body>
+</html>
